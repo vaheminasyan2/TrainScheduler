@@ -47,21 +47,39 @@ database.ref().on("child_added", function(childSnapshot) {
     var destination = childSnapshot.val().destination;
     var time = childSnapshot.val().time;
     var frequency = childSnapshot.val().frequency;
+    var nextArrivalTime = "";
+    console.log("First Train Time: " + time);
 
-    //console.log(train, destination, time, frequency);
-
-    // Calculate Minutes away
+    // Calculate next arrival time
     var currentTime = moment().format("HH:mm");
-    //var minutesAway = 
-    console.log(currentTime);
+    var firstTrainTimeObject = moment(time, "HH:mm");
+    var firstTrainTime = firstTrainTimeObject._i;
+    
+    //console.log(time);
 
+    function nextArrival() {
+        if (firstTrainTime > currentTime) {
+            nextArrivalTime = firstTrainTime;
+        }
+        else {
+            do {
+                var z = moment((moment(firstTrainTime,"HH:mm").add(frequency, "m"))._d).format("HH:mm");
+                firstTrainTime = z;
+            }
+            while (firstTrainTime < currentTime)
+            nextArrivalTime = firstTrainTime;
+            }
+        }
+    nextArrival();
+    
+    // var z = moment((moment(firstTrainTime,"HH:mm").add(frequency, "m"))._d).format("HH:mm"); console.log(z);
 
     // Create the new row
     var newRow = $("<tr>").append(
         $("<td>").text(train),
         $("<td>").text(destination),
         $("<td>").text(frequency),
-        $("<td>").text("coming soon"),
+        $("<td>").text(nextArrivalTime),
         $("<td>").text("coming soon")
     );
 
