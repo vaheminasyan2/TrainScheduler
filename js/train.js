@@ -20,8 +20,6 @@ $("#submit").on("click", function (event) {
     var time = $("#time").val().trim();
     var frequency = $("#frequency").val().trim();
 
-    //console.log(trainName, destination, time, frequency);
-
     // Create local object newTrain with train details
     var newTrain = {
         train: trainName,
@@ -41,46 +39,52 @@ $("#submit").on("click", function (event) {
 });
 
 // Create Firebase event for adding newTrain 
-database.ref().on("child_added", function(childSnapshot) {
+database.ref().on("child_added", function (childSnapshot) {
     //console.log(childSnapshot.val());
     var train = childSnapshot.val().train;
     var destination = childSnapshot.val().destination;
     var time = childSnapshot.val().time;
     var frequency = childSnapshot.val().frequency;
     var nextArrivalTime = "";
-    console.log("First Train Time: " + time);
+    var minutesAway = "";
+    console.log("First Train " + train + " time: " + time);
 
-    // Calculate next arrival time
+    // Using moment.js format currentTime and firstTrainTime to same format ("HH:mm")
     var currentTime = moment().format("HH:mm");
     var firstTrainTimeObject = moment(time, "HH:mm");
     var firstTrainTime = firstTrainTimeObject._i;
-    
+
     //console.log(time);
 
+    // Create function to calculate nextArrivalTime and minutesAway
     function nextArrival() {
         if (firstTrainTime > currentTime) {
             nextArrivalTime = firstTrainTime;
         }
         else {
             do {
-                var z = moment((moment(firstTrainTime,"HH:mm").add(frequency, "m"))._d).format("HH:mm");
+                var z = moment((moment(firstTrainTime, "HH:mm").add(frequency, "m"))._d).format("HH:mm");
                 firstTrainTime = z;
             }
             while (firstTrainTime < currentTime)
             nextArrivalTime = firstTrainTime;
-            }
         }
-    nextArrival();
-    
-    // var z = moment((moment(firstTrainTime,"HH:mm").add(frequency, "m"))._d).format("HH:mm"); console.log(z);
 
-    // Create the new row
+        // Find out minutes away in HH:mm format
+        var minutesAwayNotFormatted = moment.utc(moment(nextArrivalTime, "HH:mm").diff(moment(currentTime, "HH:mm"))).format("HH:mm");
+
+        // Convert minutes away in HH:mm format to minutes and assing it to minutesAway varialble
+        minutesAway = moment.duration(minutesAwayNotFormatted).as("minutes");
+    }
+    nextArrival();
+
+    // Create new row and append it to the Current Train Schedule 
     var newRow = $("<tr>").append(
         $("<td>").text(train),
         $("<td>").text(destination),
         $("<td>").text(frequency),
         $("<td>").text(nextArrivalTime),
-        $("<td>").text("coming soon")
+        $("<td>").text(minutesAway)
     );
 
     $(".train-table").append(newRow);
