@@ -12,7 +12,6 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 $("#submit").on("click", function (event) {
-    event.preventDefault();
 
     // Grab user input
     var trainName = $("#trainName").val().trim();
@@ -20,23 +19,30 @@ $("#submit").on("click", function (event) {
     var time = $("#time").val().trim();
     var frequency = $("#frequency").val().trim();
 
-    // Create local object newTrain with train details
-    var newTrain = {
-        train: trainName,
-        destination: destination,
-        time: time,
-        frequency: frequency
-    };
+    if (trainName === "" || destination === "" || time === "" || frequency === "") {
+        event.preventDefault();
+    }
 
-    // Push newly created object to Firebase database
-    database.ref().push(newTrain);
+    else {
+        // Create local object newTrain with train details
+        var newTrain = {
+            train: trainName,
+            destination: destination,
+            time: time,
+            frequency: frequency
+        };
 
-    // Clear out all text boxes
-    $("#trainName").val("");
-    $("#destination").val("");
-    $("#time").val("");
-    $("#frequency").val("");
+        // Push newly created object to Firebase database
+        database.ref().push(newTrain);
+
+        // Clear out all text boxes
+        $("#trainName").val("");
+        $("#destination").val("");
+        $("#time").val("");
+        $("#frequency").val("");
+    }
 });
+
 
 // Create Firebase event for adding newTrain 
 database.ref().on("child_added", function (childSnapshot) {
@@ -70,10 +76,10 @@ database.ref().on("child_added", function (childSnapshot) {
             nextArrivalTime = firstTrainTime;
         }
 
-        // Find out minutes away in HH:mm format
+        // Receive minutes away in HH:mm format
         var minutesAwayNotFormatted = moment.utc(moment(nextArrivalTime, "HH:mm").diff(moment(currentTime, "HH:mm"))).format("HH:mm");
 
-        // Convert minutes away in HH:mm format to minutes and assing it to minutesAway varialble
+        // Convert minutes away in HH:mm format to minutes and assign it to minutesAway varialble
         minutesAway = moment.duration(minutesAwayNotFormatted).as("minutes");
     }
     nextArrival();
